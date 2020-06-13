@@ -3,7 +3,7 @@
 """
 Created on Wed Apr 29 14:47:45 2020
 
-@author: s153968
+@author: Fanny Fredriksson and Karen Marie Sandø Ambrosen
 """
 
 import numpy as np
@@ -24,53 +24,8 @@ import timeit
 #{}
 #[]
 
+
 #%%
-##############################################################################
-# def getDataOld(dir_features, dir_y_ID, con_type, partialData = False):
-#     """
-#     Parameters
-#     ----------
-#     dir_features : string
-#         Directory path to where the features are saved.
-#     dir_y_ID : string
-#         Directory path to where the y-vector can be extracted.
-#     con_type : string
-#         The desired connectivity measure.
-
-#     Returns
-#     -------
-#     X : array of arrays
-#         Matrix containing a vector with all the features for each subject.
-#         Dimension (number of subjects)x(number of features).
-#     y : array
-#         A vector containing the class-information. 
-#         Remember: 0 = healty controls, 1 = schizophrenic
-
-#     """
-   
-#     # Make directory path and get file    
-#     file_path = dir_features + '/feature_dict_' + con_type + '.pkl'
-#     with open(file_path, 'rb') as file:
-#         feature_dict = pickle.load(file)
-    
-#     # Get X matrix
-#     X = np.array(list(feature_dict['features'].values()))
-#     #run_time = sum([info_vals['time'] for info_vals in list(feature_dict['info'].values())])
-    
-#     # Load csv with y classes
-#     age_gender_dat = pd.read_csv(dir_y_ID, header = 0, names = ['Id', 'Age', 'Gender', 'Group'])
-#     #age_gender_dat = age_gender_dat[~age_gender_dat['Id'].isin(['D950', 'D935', 'D259', 'D255', 'D247', 'D160'])]
-    
-#     # Order y so it matches the rows of X
-#     ID = pd.DataFrame(list(feature_dict['features']), columns = ['Id'])
-#     ID['Id'] = [i.split('R')[0] for i in ID['Id']]
-#     age_gender_dat = ID.merge(age_gender_dat, left_on = 'Id', right_on = 'Id', how = 'outer')
-#     y = age_gender_dat['Group'] 
-#     y = 1 - y
-    
-#     return X, y
-
-
 ##############################################################################
 def getData(dir_features, dir_y_ID, con_type, partialData = False):
     """
@@ -380,7 +335,7 @@ def BAitaSig():
     return roi_vec, n_BAitaSig
     
 ##############################################################################
-def getBAitaSigX(X):
+def significant_connected_areasBAitaSigX(X):
     ## Extract rois (Brodmann Areas collected as in Di Lorenzo et al.)
     
     roi_vec, n_BAitaSig = BAitaSig()
@@ -464,11 +419,7 @@ def getBAitaSigParameters(con_type, separate_bands):
                          'beta1': [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08],
                          'beta2': [0.006, 0.008, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09],
                          'gamma': [0.006, 0.008, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09]}
-        #[0.0001, 0.00033, 0.00066, 0.001, 0.0033, 0.0066, 0.01, 0.033, 0.066]
-        #[0.001, 0.0025, 0.0055, 0.0075, 0.01, 0.025, 0.05, 0.075]
-        #[0.05, 0.07, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5],
-        #[0.005, 0.0075, 0.01, 0.025, 0.05, 0.075, 0.1, 0.2, 0.3, 0.4]
-        # [0.002, 0.005, 0.008, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.2, 0.3, 0.4]
+
         elif con_type == 'pli':
             parameters= {'delta': [0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.12, 0.13, 0.14, 0.15],
                          'theta': [0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.11, 0.12, 0.13, 0.14, 0.15],
@@ -493,13 +444,9 @@ def getBAitaSigParameters(con_type, separate_bands):
         
         elif con_type == 'pli':
             parameters= {'all': [0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.11, 0.12]}
-        #[0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1],
-        #[0.07, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5]
-        #[0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5]
+
         elif con_type == 'lps':
             parameters= {'all':  [0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.11, 0.12]}
-        #[0.01, 0.03, 0.05, 0.07, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5]
-        # [0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.2, 0.3, 0.4,0.5]
             
     return parameters
  
@@ -521,8 +468,7 @@ def getBAitaParameters(con_type, separate_bands):
                          'beta1': [0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19, 0.2, 0.21],
                          'beta2': [0.09, 0.1, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19, 0.2],
                          'gamma': [0.09, 0.1, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16]}
-        #[0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1],
-        #[0.07, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5]
+            
         elif con_type == 'lps':
             parameters= {'delta': [0.09, 0.1, 0.11, 0.12, 0.13, 0.14, 0.15],
                          'theta': [0.08, 0.09, 0.1, 0.11, 0.12, 0.13, 0.14, 0.15],
@@ -530,7 +476,6 @@ def getBAitaParameters(con_type, separate_bands):
                          'beta1': [0.07, 0.08, 0.09, 0.1, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17],
                          'beta2': [0.09, 0.1, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17],
                          'gamma': [0.08, 0.09, 0.1, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16]}
-        #[0.01, 0.03, 0.05, 0.07, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5]
         
     else: 
         if con_type == 'plv':
@@ -538,23 +483,14 @@ def getBAitaParameters(con_type, separate_bands):
         
         elif con_type == 'pli':
             parameters= {'all': [0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19, 0.2, 0.21]}
-        #[0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1],
-        #[0.07, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5]
-        #[0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5]
+  
         elif con_type == 'lps':
             parameters= {'all':  [0.14, 0.145, 0.15, 0.155, 0.16, 0.165, 0.17, 0.175, 0.18]}
-        #[0.01, 0.03, 0.05, 0.07, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5]
             
     return parameters
  
 ##############################################################################   
 ##############################################################################   
-
-
-
-
-
-
 
 
 

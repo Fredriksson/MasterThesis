@@ -3,7 +3,7 @@
 """
 Created on Tue Apr 28 09:56:16 2020
 
-@author: s153968
+@author: Fanny Fredriksson and Karen Marie Sandø Ambrosen
 """
 
 import numpy as np
@@ -23,8 +23,7 @@ from dyconnmap.analytic_signal import analytic_signal
 #{}
 #[]
 
-#%%
-
+#%%###########################################################################
 def getSubjectClass(dir_y_ID):
     # Load csv with y classes
     sub_classes = {}
@@ -52,49 +51,6 @@ def lps(data, fb, fs):
         avg[pair] = num/denom
     return avg
 
-##############################################################################
-#import mlab_Fanny as mlab
-# def lps_csd(data, lower, upper, fs, pairs=None):
-    
-#     # pairs = None
-#     # fs = 256
-#     # data = label_ts
-#     n_channels, _ = np.shape(data)
-#    # _, _, filtered = analytic_signal(data, fb, fs)
-    
-#     if pairs is None:
-#         pairs = [(r2, r1) for r1 in range(n_channels) for r2 in range(r1)]
-    
-#     freq_bands = ['delta', 'theta', 'alpha', 'beta1', 'beta2', 'gamma']
-#     lps = {'delta': np.zeros((n_channels, n_channels)), 
-#            'theta': np.zeros((n_channels, n_channels)), 
-#            'alpha': np.zeros((n_channels, n_channels)), 
-#            'beta1': np.zeros((n_channels, n_channels)), 
-#            'beta2': np.zeros((n_channels, n_channels)), 
-#            'gamma': np.zeros((n_channels, n_channels))} #np.zeros((n_channels, n_channels))
-    
-#     for pair in pairs:
-        
-#         filt1, filt2 = data[pair,]
-       
-#         csdxy, freqxy = mlab.csd(
-#              x=filt1, y=filt2, Fs=fs, scale_by_freq=True, sides="onesided")
-         
-#         r = csdxy
-         
-#         num = np.power(np.imag(r),2)
-#         denom = 1 - np.power(np.real(r),2)
-#         lps_all = num / denom
-        
-#         for fb in range(len(lower)):
-#             lower_lps = 0
-#             upper_lps = 0
-#             if not float(int(lower[fb]))==lower[fb]:
-#                 lower_lps = float(lps_all[int(np.floor(lower[fb])):int(np.ceil(lower[fb]))])*(np.ceil(lower[fb])-lower[fb])
-#             if not float(int(upper[fb]))==upper[fb]:
-#                upper_lps = float(lps_all[int(np.floor(upper[fb])):int(np.ceil(upper[fb]))])*(np.abs(np.floor(upper[fb])-upper[fb]))
-#             lps[freq_bands[fb]][pair] = np.sum(lps_all[int(np.ceil(lower[fb])):int(np.floor(upper[fb]))]) + lower_lps + upper_lps
-#     return lps  
 
 ##############################################################################
 def connectivity(con_type, label_ts, fb, fs):
@@ -443,23 +399,18 @@ def plotAvgConnectivity(dir_avg_mat, dir_save, freq_band_type, title):
     
     with open(dir_avg_mat, 'rb') as file:
         avg_mat= pickle.load(file)
-    #label_ts = np.array(list(label_dict['timeseries']))
     
     # Create folder if it does not exist
     if not op.exists(dir_save):
         mkdir(dir_save)
         print('\nCreated new path : ' + dir_save)
     
-    
-    
-    
     freq_bands = ['delta', 'theta', 'alpha', 'beta1', 'beta2', 'gamma']
     fig, ax = plt.subplots(3,2, figsize = (10,12))
     for i in range(len(freq_bands)):
         
         con_fig = ax[i//2][i%2].imshow(avg_mat[freq_bands[i]], cmap='viridis') #, vmin= 0, vmax= 1)#, clim= np.percentile(con_mat[5, 95]))
-        #ax[0][0].tight_layout()
-        #plt.colorbar(con_fig)
+
         ax[i//2][i%2].set_title(freq_bands[i], fontsize=30)
         ax[i//2][i%2].tick_params(labelsize=25)
         ax[i//2][i%2].set_xlabel('Brain Area', fontsize = 25)
@@ -474,39 +425,9 @@ def plotAvgConnectivity(dir_avg_mat, dir_save, freq_band_type, title):
     cbar.ax.tick_params(labelsize=25)
     plt.show()
     
-    
-    #pdb.set_trace()
     # Save to computer 
-    #date = datetime.now().strftime("%d%m")
-    #pdb.set_trace()
     save_name = dir_save + dir_avg_mat.split('Features')[-1][0:-4] + '_' + freq_band_type + '.jpg'
     fig.savefig(save_name, bbox_inches = 'tight')
-            
-##############################################################################
-
-
-# freq_bands = ['delta', 'theta', 'alpha', 'beta1', 'beta2', 'gamma']
-#     fig, ax = plt.subplots(2,3, figsize = (12,8))
-#     for i in range(len(freq_bands)):
-        
-#         con_fig = ax[i//3][i%3].imshow(avg_mat[freq_bands[i]], cmap='viridis') #, vmin= 0, vmax= 1)#, clim= np.percentile(con_mat[5, 95]))
-#         #ax[0][0].tight_layout()
-#         #plt.colorbar(con_fig)
-#         ax[i//3][i%3].set_title(freq_bands[i], fontsize=20)
-#         ax[i//3][i%3].tick_params(labelsize=20)
-#         ax[i//3][i%3].set_xlabel('Brain Area', fontsize = 18)
-#         ax[i//3][i%3].set_ylabel('Brain Area', fontsize = 18)
-    
-    
-#     plt.tight_layout(pad = 0.6)
-#     fig.suptitle(title, fontsize = 30)
-#     fig.subplots_adjust(top=0.9, hspace = 0.3, wspace= 0.4, bottom = 0.12)
-
-#     cbar = fig.colorbar(con_fig, ax = ax.ravel().tolist(), shrink = 0.94)#, ticks = [0, 0.5, 1])
-#     cbar.ax.tick_params(labelsize=20)
-#     plt.show()
-
-
 
 
 ##############################################################################
@@ -539,8 +460,6 @@ def plotAvgConnectivity2(dir_avg_mat1, dir_avg_mat2, dir_save, freq_band_type, t
         mkdir(dir_save)
         print('\nCreated new path : ' + dir_save)
     
-    
-    
     max_val1 = np.max([np.max(avg_mat1[band]) for band in avg_mat1.keys()])
     
     max_val = np.max([np.max(avg_mat2[band]) for band in avg_mat2.keys()])
@@ -567,8 +486,7 @@ def plotAvgConnectivity2(dir_avg_mat1, dir_avg_mat2, dir_save, freq_band_type, t
         
         
         con_fig = ax[i//2][i%2].imshow(avg_mat1[freq_bands[i]], cmap='viridis', vmin= 0, vmax= max_val)#, clim= np.percentile(con_mat[5, 95]))
-        #ax[0][0].tight_layout()
-        #plt.colorbar(con_fig)
+
         ax[i//2][i%2].set_title(freq_bands[i], fontsize=30)
         ax[i//2][i%2].tick_params(labelsize=25)
         ax[i//2][i%2].set_xlabel('Brain Area', fontsize = 25)
@@ -579,8 +497,6 @@ def plotAvgConnectivity2(dir_avg_mat1, dir_avg_mat2, dir_save, freq_band_type, t
     fig.suptitle(title + 'hc', fontsize = 33)
     fig.subplots_adjust(top=0.9, hspace = 0.55,  bottom = 0.05, wspace = -0.3)
 
-    # cbar = fig.colorbar(con_fig, ax = ax.ravel().tolist())#, ticks = [0, 0.5, 1])
-    # cbar.ax.tick_params(labelsize=25)
     plt.show()
     
     save_name = dir_save + dir_avg_mat1.split('Features')[-1][0:-4] + '_' + freq_band_type + '.jpg'
@@ -592,8 +508,7 @@ def plotAvgConnectivity2(dir_avg_mat1, dir_avg_mat2, dir_save, freq_band_type, t
     for i in range(len(freq_bands)):
         
         con_fig = ax[i//2][i%2].imshow(avg_mat2[freq_bands[i]], cmap='viridis', vmin= 0, vmax= max_val)#, clim= np.percentile(con_mat[5, 95]))
-        #ax[0][0].tight_layout()
-        #plt.colorbar(con_fig)
+  
         ax[i//2][i%2].set_title(freq_bands[i], fontsize=30)
         ax[i//2][i%2].tick_params(labelsize=25)
         ax[i//2][i%2].set_xlabel('Brain Area', fontsize = 25)
@@ -607,7 +522,7 @@ def plotAvgConnectivity2(dir_avg_mat1, dir_avg_mat2, dir_save, freq_band_type, t
     cbar = fig.colorbar(con_fig, ax = ax.ravel().tolist())#, ticks = [0, 0.5, 1])
     cbar.ax.tick_params(labelsize=25)
     plt.show()
-    #pdb.set_trace()
+
     save_name = dir_save + dir_avg_mat2.split('Features')[-1][0:-4] + '_' + freq_band_type + '.jpg'
     fig.savefig(save_name, bbox_inches = 'tight')
 ##############################################################################

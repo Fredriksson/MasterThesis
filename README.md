@@ -1,5 +1,4 @@
 # MasterThesis
-Resting State EEG in Computational Psychiatry
+The codes used in the master thesis project "Resting State EEG in Computational Psychiatry"
 
-# runcorrelation
-Function that runs correlation (sjovt nok)
+

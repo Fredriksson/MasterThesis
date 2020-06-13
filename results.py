@@ -3,7 +3,7 @@
 """
 Created on Wed Apr 29 21:12:02 2020
 
-@author: s153968
+@author: Fanny Fredriksson and Karen Marie Sandø Ambrosen
 """
 
 # For debugging functions import;
@@ -18,33 +18,6 @@ chdir(r'/share/FannyMaster/PythonNew')
 # []
 # {}
 
-#%%###########################################################################
-## Example connectivity-matrix plot
-## Takes about 10 minutes for coherence
-##############################################################################
-
-# from testConnectivity import plotConnectivity 
-# from utilsResults import getNewestFolderDate
-
-# # YOU MIGHT WANT TO CHANGE THESE:
-# freq_band_type = 'DiLorenzo'
-# con_type = 'coherence' # 'coherence'
-# wanted_info = 'bands' #'all', 'bands' or 'both'
-# #################################
-
-# #Static values
-# dir_folders = r'/share/FannyMaster/PythonNew/DK_timeseries_'
-# newest_date = getNewestFolderDate(dir_folders)
-# dir_ts = dir_folders + newest_date + '/Subjects_ts/'
-
-# dir_save = dir_folders + newest_date + '/' + freq_band_type +'/Plots'
-
-# lower = [1.5, 4.,  8., 12., 20., 30.]
-# upper = [4. , 8., 12., 20., 30., 80.]
-
-# sub_nb = 8
-
-# plotConnectivity(dir_ts, dir_save, con_type, lower, upper, sub_nb)
 
 #%%###########################################################################
 ## Average connectivity-matrix plot
@@ -134,32 +107,6 @@ else:
 connected_areas = most_connected_areas(dir_nz_coef_idx, min_fraction, labels, wanted_info, clf_types, n_BAitaSig)
 
 pprint(connected_areas['alpha'])
-
-
-# from utilsResults import getDKLabels, most_connected_areas, getNewestFolderDate
-# from pprint import pprint
-
-# # YOU MIGHT WANT TO CHANGE THESE:
-# freq_band_type = 'DiLorenzo'
-# con_type = 'pli' # 'coherence'
-# wanted_info = 'bands' #'all', 'bands' or 'both'
-# min_fraction = 0.1 # Fraction of times a feature have been used
-# #################################
-# clf_types = ['lasso']
-
-# atlas = 'DKEgill' # DKEgill, BAita, BAitaSig
-
-# #Static values
-# dir_folders = r'/share/FannyMaster/PythonNew/' + atlas + '_timeseries_'
-# newest_date = getNewestFolderDate(dir_folders)
-# dir_nz_coef_idx = dir_folders + newest_date + '/' + freq_band_type + '/classificationResults/' + con_type.capitalize() + '/nz_coef_idx_'
-
-# # Extract atlas labels
-# labels = getDKLabels()
-
-# connected_areas = most_connected_areas(dir_nz_coef_idx, min_fraction, labels, wanted_info, clf_types)
-
-# pprint(connected_areas)
 
 
 #%%###########################################################################
@@ -448,7 +395,7 @@ plotItalianBrainConnections2(itaW[3].to_numpy(), itaW2, 3, dir_save)
 #%%###########################################################################
 ## Compare connectivity methods
 ##############################################################################
-from makeClassificationTest2 import getData
+from makeClassification import getData
 from utilsResults import getNewestFolderDate
 import matplotlib.pyplot as plt
 
@@ -485,7 +432,7 @@ plt.show()
 #%%###########################################################################
 ## Compare two connectivity methods for several subjects
 ##############################################################################
-from makeClassificationTest2 import getData
+from makeClassification import getData
 from utilsResults import getNewestFolderDate
 import matplotlib.pyplot as plt
 
@@ -523,10 +470,11 @@ plt.show()
 #%%###########################################################################
 ## Compare all connectivity methods for a given subject
 ##############################################################################
-from makeClassificationTest2 import getData
+from makeClassification import getData
 from utilsResults import getNewestFolderDate
 import matplotlib.pyplot as plt
 from sklearn import preprocessing
+import seaborn as sns
 
 # Parameters to change:
 freq_band_type = 'DiLorenzo'

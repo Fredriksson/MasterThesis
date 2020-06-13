@@ -3,7 +3,7 @@
 """
 Created on Thu May 28 17:02:44 2020
 
-@author: s153968
+@author: Fanny Fredriksson and Karen Marie Sandø Ambrosen
 """
 
 
@@ -94,7 +94,7 @@ def band_idx(idx, n_feature_bands, n_BAitaSig=None):
         
         
 ##############################################################################  
-from makeClassificationTest2 import BAitaSig      
+from makeClassification import BAitaSig      
 def getLabels(atlas): #getDKLabels
     """
     Returns
@@ -1196,105 +1196,5 @@ def plotItalianBrainConnections2(itaW, itaW2, band_idx, dir_save):
     
     fig.savefig(dir_save + '/BrainConnections_Top7' + freq_bands[band_idx] + '.jpg', bbox_inches = 'tight')
 
-##############################################################################
-def plotItalianBrainConnections3(itaW, band_idx, dir_save):
-    """
-    Plots the connections between different brain parts for the different 
-    frequency bands on an image of the brain. The thickness of the connections 
-    depends on how the weights have been calculated. Choose a title to explain 
-    what weights that are used. 
-
-    Parameters
-    ----------
-    cons_W_tot : list of lists
-        Contains lists corresponding to each frequency band with the weights 
-        between each used brain area.
-    title : string
-        The title you want for the figure.
-
-    """
-    
-    # Get the coordinates for each brain area
-    coordinates = getCoordinates('BAita')
-    
-    freq_bands = ["delta", "theta", "alpha", "beta1", "beta2", "gamma"]
-    title = 'Di Lorenzo et al.s Significant Connections'  
-    #pdb.set_trace()
-    #Make symmetric
-    
-    fig, ax = plt.subplots(1,2, figsize = (12, 7.5))
-    fig.subplots_adjust(bottom = 0.32)
-    
-
-    if np.min(itaW1)>=0:
-        cmap1 = mpl.cm.Reds
-        norm1 = mpl.colors.Normalize(vmin=0, vmax=np.max(itaW1))
-    elif np.max(itaW1)<=0:
-        cmap1 = mpl.cm.Blues.reversed()
-        norm1 = mpl.colors.Normalize(vmin=np.min(itaW1), vmax=0)
-    elif np.abs(np.min(itaW1))<np.max(itaW1):
-        cmap1 = mpl.cm.seismic
-        norm1 = mpl.colors.Normalize(vmin=-np.max(itaW1), vmax=np.max(itaW1))
-    else:
-        cmap1 = mpl.cm.seismic
-        norm1 = mpl.colors.Normalize(vmin=-np.min(itaW1), vmax=np.min(itaW1))
-        
-    if np.min(itaW2)>=0:
-        cmap2 = mpl.cm.Reds
-        norm2 = mpl.colors.Normalize(vmin=0, vmax=np.max(itaW2))
-    elif np.max(itaW2)<=0:
-        cmap2 = mpl.cm.Blues.reversed()
-        norm2 = mpl.colors.Normalize(vmin=np.min(itaW2), vmax=0)
-    elif np.abs(np.min(itaW2))<np.max(itaW2):
-        cmap2 = mpl.cm.seismic
-        norm2 = mpl.colors.Normalize(vmin=-np.max(itaW2), vmax=np.max(itaW2))
-    else:
-        cmap2 = mpl.cm.seismic
-        norm2 = mpl.colors.Normalize(vmin=-np.min(itaW2), vmax=np.min(itaW2))
-    
-    fig1 = plotting.plot_connectome(itaW1, coordinates, display_mode='z', axes = ax[0], 
-                                    annotate = True, edge_cmap = cmap1)
-    plt.title(freq_bands[band_idx[0]]+' - Weight: z-value', y = 1, fontsize= 20)
-    fig1.annotate(size = 18)
-    
-    
-    fig2 = plotting.plot_connectome(itaW2, coordinates, display_mode='z', axes = ax[1],
-                                    edge_cmap = cmap2)  
-    plt.title(freq_bands[band_idx[1]]+' - Weight: z-value', y = 1, fontsize= 20)
-    fig2.annotate(size = 18)
-
-    fig.suptitle(title, fontsize=25)
-    
-    marker_color = list(cm.Paired(np.linspace(0,1, (len(coordinates)//2-1))))
-    marker_color.extend([np.array([0,0,0,1])])
-    
-    labels = getLabels('BAita') 
-    #pdb.set_trace()
-    for i,j in enumerate(range(0, len(coordinates), 2)):
-        fig1.add_markers(marker_coords = [coordinates[j], coordinates[j+1]], 
-                          marker_size = 200, marker_color = marker_color[i], 
-                          label= labels[j].split('-')[0])
-        fig2.add_markers(marker_coords = [coordinates[j], coordinates[j+1]], 
-                          marker_size = 200, marker_color = marker_color[i], 
-                          label= labels[j].split('-')[0])
-
-    
-    plt.legend(bbox_to_anchor = (1.05,1), borderaxespad = 0., loc = 'upper left',
-                    prop= {'size': 18})
-    
-    # Colorbar 1
-    cbax = fig.add_axes([0.19, 0.29, 0.23, 0.03])
-    fig.colorbar(mpl.cm.ScalarMappable(norm = norm1, cmap = cmap1), ax = ax[0], 
-                 orientation = 'horizontal', shrink = 0.5, cax = cbax)
-    
-    # Colorbar 2
-    cbax = fig.add_axes([0.62, 0.29, 0.23, 0.03])
-    fig.colorbar(mpl.cm.ScalarMappable(norm = norm2, cmap = cmap2), ax = ax[1], 
-                  orientation = 'horizontal', shrink = 0.5, cax=cbax)
-   
-    plt.show()
-    
-    #pdb.set_trace()
-    fig.savefig(dir_save + '/BrainConnections_' + freq_bands[band_idx[0]] +freq_bands[band_idx[1]] + '.jpg', bbox_inches = 'tight')
 ##############################################################################
 
