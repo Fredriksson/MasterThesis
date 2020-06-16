@@ -83,7 +83,7 @@ for con_type in con_types:
 
 
 #%%###########################################################################
-## NEW - Make connectivity vectors from time series  
+## NEW and not used yet - Make connectivity vectors from time series  
 ##############################################################################
 
 from get_connectivity import getConnectivity2 

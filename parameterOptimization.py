@@ -30,6 +30,63 @@ import pdb
 ##############################################################################
 def leaveKout_CV(X, y, n_scz_te, rep, perms, classifiers, parameters, count,
                     freq_bands, x_size, auc, nz_coef_idx, nz_coef_val, n_BAitaSig = None):
+    """
+    Calculates the leave K out cross validation. 
+
+    Parameters
+    ----------
+    X : array of arrays
+        Matrix containing a vector with all the features for each subject.
+        Dimension (number of subjects)x(number of features).
+    y : array
+        A vector containing the class-information. 
+        Remember: 1 = healty controls, 0 = schizophrenic        
+    n_scz_te : int
+        Desired number of schizophrenic patients in each test set.
+    rep : integer
+        The number of repition that has been used so far.
+    perms : range(*)
+        Range with desired number (*) of permutations. 
+        *=1 indicates no permutations.
+    classifiers : dictionary
+        Dictionary containing classifiers. E.g. {'lasso' : Lasso(max_iter = 10000)}
+    parameters : dictionary
+        Dictionary containing parameters to the classifiers as in "classifiers"
+    count : integer
+        Used to know how many loops that have been made due to the pre 
+        allocated space for AUC.
+    freq_bands : list of strings
+        Either ['all'] or ['detla','theta','alpha','beta1','beta2','gamma'].
+    x_size : integer
+        The size each X has which changes depending on freq_bands.
+    auc : dictionary
+        Contains the auc-scores for each loop, either divided into bands or 
+        with the key "all".
+    nz_coef_idx : dictionary
+        Contains the non-zero coefficient indices for each loop, either 
+        divided into bands or with the key "all".
+    nz_coef_val : dictionary
+        Contains the non-zero coefficient values (the weights) for each 
+        loop, either divided into bands or with the key "all".
+    n_BAitaSig : list of integers, optional
+        The number of connections in each band when BAitaSig is used. 
+        The default is None.
+    Returns
+    -------
+    auc : dictionary
+        Contains the updated auc-scores for each loop, either divided into 
+        bands or with the key "all".
+    nz_coef_idx : dictionary
+        Contains the updated non-zero coefficient indices for each loop, 
+        either divided into bands or with the key "all".
+    nz_coef_val : dictionary
+        Contains the updated non-zero coefficient values (the weights) for 
+        each loop, either divided into bands or with the key "all".
+    count : integer
+        Used to know how many loops that have been made due to the pre 
+        allocated space for AUC.
+
+    """
     
     skf = StratifiedKFold(n_splits=int(sum(y==0)//n_scz_te),shuffle=True, random_state = rep)
     count_plt = 0
@@ -91,7 +148,7 @@ def leaveKout_CV(X, y, n_scz_te, rep, perms, classifiers, parameters, count,
             grid_param_1 = parameters[freq_bands[i]]
             
             scores_mean = cv_results[('mean_test_' + metric)]
-            scores_sd = cv_results[('std_test_' + metric)]
+            # scores_sd = cv_results[('std_test_' + metric)]
             scores_mean_tr = cv_results[('mean_train_' + metric)]
             
             # Set plot style
@@ -158,9 +215,6 @@ def CV_classifier(X, y, n_scz_te, reps, separate_bands, perms, dir_save,
         loop, either divided into bands or with the key "all".
         
     """  
-    
-    # Get current date as day and month
-    date = datetime.now().strftime("%d%m")
     
     # Check if data should be seperated into bands or not:
     if separate_bands:

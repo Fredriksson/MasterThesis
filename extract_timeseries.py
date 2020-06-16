@@ -11,17 +11,14 @@ import mne
 import os.path as op
 import timeit
 import pickle
-
-#from mne.preprocessing import (ICA, create_eog_epochs, create_ecg_epochs, compute_proj_ecg, compute_proj_eog, corrmap, find_eog_events)
 from mne.minimum_norm import make_inverse_operator, apply_inverse_raw
 from mne.datasets import fetch_fsaverage
 from mne import read_labels_from_annot
-#from mne.connectivity import spectral_connectivity, envelope_correlation
 from os import listdir
 from tqdm import tqdm #count for loops
 from os import mkdir
 
-import pdb
+import pdb #For debugging add pdb.set_trace() in function use c for continue, u for up, exit for exiting debug mode etc.
 
 # []
 # {}
@@ -109,8 +106,8 @@ def extract_ts(dir_prepro_dat, dir_save, lower, upper, atlas):
                [23,29,30,31],
                [27,28,35,36], #[27,28,34,35,36], 
                [39,40,43], [19,37], [17,18]]
-        ita_label = ['SMA', 'SPL', 'SFC', 'AFC', 'OFC', 'LFC', #'INS',
-                     'LTL', 'ACC_new', 'PCC', 'PHG_new', 'IPL', 'FLC', 'PVC']
+        # ita_label = ['SMA', 'SPL', 'SFC', 'AFC', 'OFC', 'LFC', #'INS',
+        #              'LTL', 'ACC_new', 'PCC', 'PHG_new', 'IPL', 'FLC', 'PVC']
         
         # Sort labels according to connectivity featurers
         new_label = []

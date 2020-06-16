@@ -6,11 +6,7 @@ Created on Wed Apr 29 21:12:02 2020
 @author: Fanny Fredriksson and Karen Marie Sandø Ambrosen
 """
 
-# For debugging functions import;
-import pdb; 
-# And then use following for "stopping" the code.
-#pdb.set_trace()
-#Use "c", "u", "d" etc for navigation
+import pdb; #For debugging add pdb.set_trace() in function use c for continue, u for up, exit for exiting debug mode etc.
 
 from os import chdir
 chdir(r'/share/FannyMaster/PythonNew')
@@ -537,7 +533,6 @@ sns.reset_orig()
 from glob import glob
 import os.path as op
 from utilsResults import getNewestFolderDate
-import pickle
 import matplotlib.pyplot as plt
 # Parameters to change:
 freq_band_type = 'DiLorenzo'

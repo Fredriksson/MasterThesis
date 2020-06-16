@@ -6,15 +6,12 @@ Created on Tue May 26 10:40:23 2020
 @author: Fanny Fredriksson and Karen Marie Sandø Ambrosen
 """
 import numpy as np
-#from testConnectivity import lps_csd
-from dyconnmap.fc import corr, coherence, pli, plv
 import matplotlib.pyplot as plt
 from dyconnmap.analytic_signal import analytic_signal
-#import mlab_Fanny as mlab
-from scipy import signal
-import matplotlib.mlab as mlab
 import seaborn as sns
+import dyconnmap
 
+import pdb #For debugging add pdb.set_trace() in function use c for continue, u for up, exit for exiting debug mode etc.
 # {}
 # []
 
@@ -57,8 +54,8 @@ sigC = A*np.sin(f*t + phiC) + 1/10*np.sin(4*t + phiC)
 
 dat = [sigA,sigB,sigC] #,sigD]
 
-_, PLI = pli(dat, fb=None, fs=None, pairs=None)
-_, PLV = plv(dat, fb=None, fs=None, pairs=None)
+_, PLI = dyconnmap.fc.pli(dat, fb=None, fs=None, pairs=None)
+_, PLV = dyconnmap.fc.plv(dat, fb=None, fs=None, pairs=None)
 LPS = lps_plv(dat, fb=None, fs=None)
 
 print(PLI)
@@ -120,10 +117,10 @@ for i, phi in enumerate(phiInterval):
     
     dat = [sigA1,sigB,sigC]
 
-    _, PLI = pli(dat, fb=None, fs=None, pairs=None)
-    _, PLV = plv(dat, fb=None, fs=None, pairs=None)
+    _, PLI = dyconnmap.fc.pli(dat, fb=None, fs=None, pairs=None)
+    _, PLV = dyconnmap.fc.plv(dat, fb=None, fs=None, pairs=None)
     LPS = lps_plv(dat, fb=None, fs=None)
-    cor = corr(dat)
+    cor = dyconnmap.fc.corr(dat)
     
     pliAB.append(PLI[0,1])
     pliAC.append(PLI[0,2])
@@ -150,10 +147,10 @@ for i, phi in enumerate(phiInterval):
     
     dat = [sigC,sigA,sigB1]
 
-    _, PLI = pli(dat, fb=None, fs=None, pairs=None)
-    _, PLV = plv(dat, fb=None, fs=None, pairs=None)
+    _, PLI = dyconnmap.fc.pli(dat, fb=None, fs=None, pairs=None)
+    _, PLV = dyconnmap.fc.plv(dat, fb=None, fs=None, pairs=None)
     LPS = lps_plv(dat, fb=None, fs=None)
-    cor = corr(dat)
+    cor = dyconnmap.fc.corr(dat)
     
     pliCB.append(PLI[0,2])
     plvCB.append(PLV[0,2])

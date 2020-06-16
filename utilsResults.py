@@ -22,8 +22,10 @@ from collections import OrderedDict
 import nibabel as nb
 from nilearn import datasets, plotting
 from nilearn import surface
-import pdb
 import matplotlib as mpl
+from makeClassification import BAitaSig
+
+import pdb; #For debugging add pdb.set_trace() in function use c for continue, u for up, exit for exiting debug mode etc.
 
 # {}
 # []
@@ -68,6 +70,9 @@ def band_idx(idx, n_feature_bands, n_BAitaSig=None):
         Index number in vector containing several bands.
     n_feature_bands : int
         Number of feature bands.
+    n_BAitaSig : list of integers, optional
+        The number of connections in each band when BAitaSig is used. 
+        The default is None.
 
     Returns
     -------
@@ -89,14 +94,15 @@ def band_idx(idx, n_feature_bands, n_BAitaSig=None):
             if (idx < cum_val):
                 idx_real = idx - n_cumsum[band]
                 return [band, idx_real]
-
         
-        
-        
-##############################################################################  
-from makeClassification import BAitaSig      
-def getLabels(atlas): #getDKLabels
+##############################################################################        
+def getLabels(atlas): #getDKLabels    
     """
+    Parameters
+    ----------
+    atlas : string
+        The name of the used atlas
+    
     Returns
     -------
     A list containing Desikan-Killiany brain areas. Hence each element of the 
@@ -111,18 +117,16 @@ def getLabels(atlas): #getDKLabels
         #subjects_dir = '/home/kmsa/mne_data/MNE-fsaverage-data'
         subject = 'fsaverage'
         
-        #parc = 'PALS_B12_Brodmann' 
         parc = 'aparc'
         labels = read_labels_from_annot(subject, parc = parc, hemi='both',
                                          surf_name= 'white', annot_fname = None, regexp = None,
                                          subjects_dir = subjects_dir, verbose = None)
-        
-        
         labels = labels[:-1] #[] 
         labels = [i.name for i in labels]
         
-        #rois = [0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1]
-        #rois = [0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1]
+        # Old rois with paracentral (used in the report)
+        # rois = [0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1]
+        # New rois with parahippocampal
         rois = [0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1]
         rois = np.array([rois, rois]).reshape(-1,order='F')
         
@@ -231,6 +235,9 @@ def getData(dirData, wanted_info, clf_types):
 ##############################################################################
 def most_connected_areas(dir_nz_coef_idx, min_fraction, labels, wanted_info, clf_types, n_BAitaSig=None):
     """
+    Prints the areas that are connected more then the minimum fraction of 
+    times.
+    
     Parameters
     ----------
     dir_nz_coef_idx : string
@@ -244,16 +251,14 @@ def most_connected_areas(dir_nz_coef_idx, min_fraction, labels, wanted_info, clf
         Can be 'all', 'bands' or 'both'. 
     clf_types : list of strings
         Each string corresponds to the name of a classifier.
+    n_BAitaSig : list of integers, optional
+        The number of connections in each band when BAitaSig is used. 
+        The default is None.
         
     Returns
     -------
     connected_areas : string
         String containing the most connected areas and what band that is used.
-
-    Notes
-    -------
-    Prints the areas that are connected more then the minimum fraction of 
-    times.
 
     """
     
@@ -327,6 +332,11 @@ def boxplots_auc(dir_auc, dir_save, clf_types, wanted_info, figsize, con_type, a
         Can be 'all', 'bands' or 'both'. 
     figsize : tuple
         The wanted figure size. E.g. (10,6)
+    con_type : string
+        The desired connectivity measure.
+    atlas : string
+        The name of the used atlas
+    
         
     Returns
     -------
@@ -335,14 +345,11 @@ def boxplots_auc(dir_auc, dir_save, clf_types, wanted_info, figsize, con_type, a
 
     """
     auc_plot = []
-    xlabel = []
     clf_name = ''
     for clf in clf_types:
         auc_dict = getData(dir_auc, wanted_info, clf_types)
         clf_name += clf
-    #auc_dict = getData(dir_auc, wanted_info)        
 
-        #pdb.set_trace()
     
     # Used frequency bands 
     #freq_bands = ["delta", "theta", "alpha", "beta1", "beta2", "gamma"]
@@ -353,13 +360,7 @@ def boxplots_auc(dir_auc, dir_save, clf_types, wanted_info, figsize, con_type, a
             auc_plot.append(auc)
             
         df=pd.DataFrame.from_dict(auc_dict)
-        #pdb.set_trace()
-        if len(clf_types)>1:
-            xlabel = [clf + ' ' + str(i) for i in freq_bands]
-        else: 
-            xlabel = freq_bands
-            
-    # pdb.set_trace()
+
     sns.set(font_scale=2)
     fig = plt.figure(figsize=figsize)
     if atlas == 'BAitaSig':
@@ -369,16 +370,11 @@ def boxplots_auc(dir_auc, dir_save, clf_types, wanted_info, figsize, con_type, a
     else: 
         atlas = 'DK-expert'
         
-    sns.boxplot(data=df).set_title(atlas + ': Boxplots of ' + str(len(auc)) + ' AUC scores - ' + con_type.upper() )
-    # plt.boxplot(auc_plot)
-    # locs, junk = plt.xticks()
-    # plt.xticks(locs, xlabel)
+    sns.boxplot(data=df).set_title(atlas + ': Boxplots of ' + str(len(auc)) + ' AUC scores - ' + con_type.upper())
     plt.xlabel('Frequency Bands')
     plt.ylabel('AUC')
-    # plt.title('Boxplots of ' + str(len(auc)) + ' AUC scores - ' + con_type )
     plt.show()
     
-    date = datetime.now().strftime("%d%m")
     fig.savefig(dir_save + '/Boxplots_auc_' + con_type + '_' + wanted_info + '.jpg', bbox_inches = 'tight')
     sns.reset_orig()
     return fig    
@@ -440,6 +436,8 @@ def plotConnections(cons_W_tot, title, atlas):
         between each used brain area.
     title : string
         The title you want for the figure.
+    atlas : string
+        The name of the used atlas.
 
     """
     
@@ -451,41 +449,10 @@ def plotConnections(cons_W_tot, title, atlas):
     fig, ax = plt.subplots(2,3)
     for i in range(len(cons_W_tot)):
         cons_W = cons_W_tot[i]
-        # cons_Wcount = cons_Wcount_tot[i]
-        
-        
-        #Plot matrix
-        #plotting.plot_matrix(cons_Wmu)
-        #plotting.show()
-        
-        #Plot matrix
-        #plotting.plot_matrix(cons_Wcount)
-        #plotting.show()
-        
-        #Plot connections/important features (weights)
         plotting.plot_connectome(cons_W, coordinates, display_mode='z',
                                  node_color='k', node_size=1,
-                                 title= freq_bands[i], axes = ax[i//3][i%3])
-        #plotting.plot_connectome(cons_Wcount, coordinates, display_mode='z',
-        #                         node_color='k', node_size=1, axes = ax[i%3][i//3+2])#title= freq_bands[i],
-
-                                     
+                                 title= freq_bands[i], axes = ax[i//3][i%3])                                     
     fig.suptitle(title)
-        #ax[i//3][i%3].plottt
-    #plotting.show()
-        
-        
-# con_fig = ax[i//3][i%3].imshow(con_mat, cmap='viridis', vmin= -1, vmax= 1)#, clim= np.percentile(con_mat[5, 95]))
-    #     #ax[0][0].tight_layout()
-    #     #plt.colorbar(con_fig)
-    #     ax[i//3][i%3].set_title(freq_bands[i])
-    
-    
-    # plt.tight_layout(pad = 0.6)
-    # fig.suptitle(con_type.capitalize())
-    # fig.subplots_adjust(top=0.88)
-    # fig.colorbar(con_fig, ax = ax.ravel().tolist(), shrink = 0.98, ticks = [-1, 0, 1])
-    # plt.show()
     
 ##############################################################################
 def getWeights(coef_idx_top, coef_idx_vec, coef_val_vec):
@@ -543,11 +510,11 @@ def makeConMatrix(band_index, mu_w, cv_count, j, atlas, wanted_info):
     j : int
         For 'all' this is a frquency band number, for 'bands' this should be 
         -1.
-    x : list
-        x-coordinates of a triangular matrix.
-    y : list
-        y-coordinates of a triangular matrix.
-
+    atlas : string
+        The name of the used atlas
+    wanted_info : string
+        Can be 'all', 'bands' or 'both'. 
+        
     Returns
     -------
     cons_Wmu : list
@@ -603,20 +570,6 @@ def makeConMatrix(band_index, mu_w, cv_count, j, atlas, wanted_info):
     cons_Wcount += cons_Wcount.T
     return cons_Wmu, cons_Wcount
 
-
-#     if n_BAitaSig == None:
-#         for band in range(6):
-#             if (idx in range(band*n_feature_bands, (band+1)*n_feature_bands)):
-#                 idx_real = idx % n_feature_bands
-#                 return [band, idx_real]
-#     else: 
-#         n_cumsum = [0]
-#         n_cumsum.extend(np.cumsum(n_BAitaSig))
-#         for band, cum_val in enumerate(n_cumsum[1:]):
-#             if (idx < cum_val):
-#                 idx_real = idx - n_cumsum[band]
-#                 return [band, idx_real]
-
 ##############################################################################
 def getConMatrices(dir_nz_coef_idx, dir_nz_coef_val, wanted_info, clf_types, min_fraction, atlas):
     """
@@ -636,6 +589,8 @@ def getConMatrices(dir_nz_coef_idx, dir_nz_coef_val, wanted_info, clf_types, min
         Each string is the name of a wanted classifer. E.g. ['lasso', 'svm']
     min_fraction : float
         The minimum fraction of times a feature have been used.
+    atlas : string
+        The name of the used atlas
 
     Returns
     -------
@@ -682,10 +637,9 @@ def getConMatrices(dir_nz_coef_idx, dir_nz_coef_val, wanted_info, clf_types, min
                        
         # Get band number and real index
         band_index = [band_idx(idx, n_feature_bands, n_BAitaSig) for idx in coef_idx_top]
-        #pdb.set_trace()
+
         # Get weights 
         mu_w, cv_count = getWeights(coef_idx_top, coef_idx_vec, coef_val_vec)
-        
         
         #Get conmatrix all
         if band == 'all':
@@ -764,8 +718,6 @@ def getBAlabelCoordinates():
             ba_lh = 'Brodmann.' + str(j) +'-lh'
             ba_rh = 'Brodmann.' + str(j) +'-rh'
             
-            #if sum(vert_lh == idx_ba_lh[ba_lh])==0 or sum(vert_rh == idx_ba_rh[ba_rh])==0:
-            #    pdb.set_trace()
             lh = vert_lh == idx_ba_lh[ba_lh]
             rh = vert_rh == idx_ba_rh[ba_rh]
             lab_sum_lh += np.sum(coords_lh[lh], 0)
@@ -777,22 +729,6 @@ def getBAlabelCoordinates():
         lab_sum_rh /= count_rh
         label_coord[ita_label[idx] + '-lh'] = lab_sum_lh
         label_coord[ita_label[idx] + '-rh'] = lab_sum_rh
-   
-   
-    
-    # label_coord = {}
-    # for hemi in ['left', 'right']:
-    #     labels = dk_atlas['labels_%s' % hemi]
-    #     vert = dk_atlas['map_%s' % hemi]
-    #     coords, _ = surface.load_surf_mesh(fsaverage['pial_%s' % hemi])
-    #     for idx, label in enumerate(labels):
-    #         #if ("unknown" not in str(label) and "corpuscallosum" not in str(label)):  # Omit the unknown and corpuscallosum labels.
-    #         if ('Brodmann.' in str(label)):   # Compute mean location of vertices in label of index idx
-    #             #pdb.set_trace()
-    #             if hemi=='left':
-    #                 label_coord[str(label).split(sep="'")[1]+'-lh'] = np.mean(coords[vert == idx], axis=0)
-    #             else:
-    #                 label_coord[str(label).split(sep="'")[1]+'-rh'] = np.mean(coords[vert == idx], axis=0)
                 
     return label_coord
 
@@ -801,6 +737,11 @@ def getCoordinates(atlas):
     """
     Get the coordinates corresponding to the Deskian-Killiany's brain areas.
 
+    Parameters
+    ----------
+    atlas : string
+        The name of the used atlas
+        
     Returns
     -------
     np.array with the 3D coordinates.
@@ -854,8 +795,12 @@ def getPermResults(dir_auc, dir_auc_perm, dir_save, wanted_info, nb_perms, title
         Directory path to where the figures should be saved.
     wanted_info : string
         Can be 'both', 'all', or 'bands'
-    clf_types : list of string
-        The strings tells what classifier to use.
+    nb_perms: integer
+        Number of permutations that was used
+    title : string
+        The desired title of the figure
+    con_type : string
+        The desired connectivity measure.
 
     """
     
@@ -874,7 +819,6 @@ def getPermResults(dir_auc, dir_auc_perm, dir_save, wanted_info, nb_perms, title
         n_loops = len(result_perm_all)//nb_perms
         
         result_perm = np.mean(np.reshape(result_perm_all[0:(len(result_perm_all)//n_loops)*n_loops], (len(result_perm_all)//n_loops, n_loops)), axis = 1)
-        #mu_result_perm_all = np.mean(result_perm_all)
         mu_result_perm = np.mean(result_perm)
         
         #Plot
@@ -885,8 +829,6 @@ def getPermResults(dir_auc, dir_auc_perm, dir_save, wanted_info, nb_perms, title
         ax[i//3][i%3].set_title(band, fontsize= 26)
         ax[i//3][i%3].set_xlabel("Mean AUC's" , fontsize= 23)
         ax[i//3][i%3].set_ylabel('Frequency', fontsize= 23)
-        #ax[i//3][i%3].text(0,0,'Frequency')#, fontsize= 23)
-        # ax[i//3][i%3].set_ylim([0, 18])
         
         pval = (sum(result_perm>mu_result)+1)/(len(result_perm)+1)
         pval_list.append(pval)
@@ -901,8 +843,6 @@ def getPermResults(dir_auc, dir_auc_perm, dir_save, wanted_info, nb_perms, title
     
     plt.show()
     
-    #pdb.set_trace()
-    
     fig.savefig(dir_save + '/PermutationHist_' + con_type + '_' + wanted_info + '.jpg', bbox_inches = 'tight')
     sns.reset_orig()
     return pval_list
@@ -914,15 +854,26 @@ def plotSigBrainConnections(cons_Wmu, cons_Wcount, atlas, band_idx, dir_save, co
     Plots the connections between different brain parts for the different 
     frequency bands on an image of the brain. The thickness of the connections 
     depends on how the weights have been calculated. Choose a title to explain 
-    what weights that are used. 
+    what weights that are used.
 
     Parameters
     ----------
-    cons_W_tot : list of lists
-        Contains lists corresponding to each frequency band with the weights 
-        between each used brain area.
-    title : string
-        The title you want for the figure.
+    cons_Wmu : list of lists
+        Contains lists corresponding to each frequency band with the average 
+        weights between each used brain area.
+    cons_Wcount : list of lists
+        Contains lists corresponding to each frequency band with the 
+        occerrences weights between each used brain area.
+    atlas : string
+        The name of the used atlas
+    band_idx : integer
+        The desired band number.
+    dir_save : string
+        The directory path to where the figure should be saved.
+    con_type : string
+        The desired connectivity measure.
+    denom : integer
+        Denomenator used to make the counts being in percentage.
 
     """
     
@@ -1006,7 +957,16 @@ def plotSigBrainConnections(cons_Wmu, cons_Wcount, atlas, band_idx, dir_save, co
 
 ##############################################################################
 def getItalianSigMatrices():
-    #dat = pd.read_csv(dir_y_ID, header = 0, names = ['Id', 'Age', 'Gender', 'Group'])
+    """
+    Extracts the significant connections found by Di Lorenzo et al. 
+
+    Returns
+    -------
+    itaWeights : list of lists
+        Contains one matrix for each band with the significant areas.
+
+    """
+
     dir1 = r'/share/FannyMaster/PythonNew/Lorenzo_SI_table1.xlsx'
     xls = pd.ExcelFile(dir1)
     itaWeights = []
@@ -1027,8 +987,7 @@ def getItalianSigMatrices():
             skiprows.extend([13+29*i, 14+29*i])
             
             
-        dat = pd.read_excel(xls, '78 HV vs. 25 SDD', na_values=['-'], usecols = usecol, skiprows = skiprows)
-        #dat.keys()    
+        dat = pd.read_excel(xls, '78 HV vs. 25 SDD', na_values=['-'], usecols = usecol, skiprows = skiprows)   
         roi_mat = abs(dat)>3.485124
         itaWeights.append(dat[roi_mat].fillna(0))
 
@@ -1037,19 +996,19 @@ def getItalianSigMatrices():
 ##############################################################################
 def plotItalianBrainConnections(itaW, band_idx, dir_save):
     """
-    Plots the connections between different brain parts for the different 
-    frequency bands on an image of the brain. The thickness of the connections 
-    depends on how the weights have been calculated. Choose a title to explain 
-    what weights that are used. 
+    Plots the significant connections found by Di Lorenzo et al. on an image 
+    of the brain. The thickness of the connections depends on magnitude of the
+    extracted z-values.
 
     Parameters
     ----------
-    cons_W_tot : list of lists
-        Contains lists corresponding to each frequency band with the weights 
-        between each used brain area.
-    title : string
-        The title you want for the figure.
-
+    itaW : list of lists
+        Contains lists corresponding to Di Lorenzo et al.'s found significant 
+        connections.
+    band_idx : integer
+        The desired frequency band number. 
+    dir_save : string
+        Directiry path to where the figure should be saved. 
     """
     
     # Get the coordinates for each brain area
@@ -1113,19 +1072,22 @@ def plotItalianBrainConnections(itaW, band_idx, dir_save):
 ##############################################################################
 def plotItalianBrainConnections2(itaW, itaW2, band_idx, dir_save):
     """
-    Plots the connections between different brain parts for the different 
-    frequency bands on an image of the brain. The thickness of the connections 
-    depends on how the weights have been calculated. Choose a title to explain 
-    what weights that are used. 
+    Plots the significant connections found by Di Lorenzo et al. on an image 
+    of the brain. The thickness of the connections depends on magnitude of the
+    extracted z-values.
 
     Parameters
     ----------
-    cons_W_tot : list of lists
-        Contains lists corresponding to each frequency band with the weights 
-        between each used brain area.
-    title : string
-        The title you want for the figure.
-
+    itaW : list of lists
+        Contains lists corresponding to Di Lorenzo et al.'s found significant 
+        connections.
+    itaW2 : list of lists
+        Contains lists corresponding to Di Lorenzo et al.'s top significant 
+        connections.
+    band_idx : integer
+        The desired frequency band number. 
+    dir_save : string
+        Directiry path to where the figure should be saved. 
     """
     
     # Get the coordinates for each brain area
