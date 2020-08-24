@@ -72,8 +72,9 @@ plt.plot(mean_ts.T[0:tp]-sd_ts.T[0:tp])
 # Function to load connectivity matrices
 ##############################################################################
 
-from makeClassification import getData, getEgillX, BAitaSig, getBAitaSigX
-from utilsResults import getLabels, getConMatrices, band_idx
+from utils_runOnce_classification import getEgillX, significant_connected_areasBAitaSigX
+from utils_joint import get_Xy
+from utils_resultsClassification import getLabels, getConMatrices, band_idx
     
 
 ##############################################################################
@@ -129,88 +130,255 @@ def significant_connected_areas(pval_idx, labels, n_BAitaSig=None):
 # T-test of all roi-roi connections 
 #####################################################
 
-test = 'ttest' #'MannWhitneyU'
+# test = 'ttest' #'MannWhitneyU'
 
-# atlas = ['DK_timeseries_0505', 'DKEgill_timeseries_2705', 'BAita_timeseries_2005', 'BAitaSig_timeseries_2705']
-# atlas2 = ['Desikan-Killiany', 'Desikan-Killiany selected rois (Egill)', 'Brodmann', 'Brodmann selected rois (Lorenzo et al.)']
-# atlas3 = ['DK', 'DKEgill', 'BAita', 'BAitaSig']
-# con_type = ['plv', 'pli', 'lps']
+# # atlas = ['DK_timeseries_0505', 'DKEgill_timeseries_2705', 'BAita_timeseries_2005', 'BAitaSig_timeseries_2705']
+# # atlas2 = ['Desikan-Killiany', 'Desikan-Killiany selected rois (Egill)', 'Brodmann', 'Brodmann selected rois (Lorenzo et al.)']
+# # atlas3 = ['DK', 'DKEgill', 'BAita', 'BAitaSig']
+# # con_type = ['plv', 'pli', 'lps']
 
 
-atlas = ['BAita_timeseries_2005', 'BAitaSig_timeseries_2705', 'DKEgill_timeseries_2705'] # , 'DK_timeseries_0505']
-atlas2 = ['Brodmann', 'Brodmann selected rois (Lorenzo et al.)', 'Desikan-Killiany selected rois (Egill)'] #, 'Desikan-Killiany']
-atlas3 = ['BAita', 'BAitaSig', 'DKEgill'] #, 'DK']
-#atlas3 = ['DK', 'DKEgill', 'BAita', 'BAitaSig']
-con_type = ['pli']
+# atlas = ['DK_timeseries_0505'] # ['BAita_timeseries_2005', 'BAitaSig_timeseries_2705', 'DKEgill_timeseries_1006']
+# atlas2 = ['Desikan-Killiany']  # ['Brodmann', 'Brodmann selected rois (Lorenzo et al.)', 'Desikan-Killiany selected rois (Egill)'] 
+# atlas3 = ['DK'] # ['BAita', 'BAitaSig', 'DKEgill']
+# #atlas3 = ['DK', 'DKEgill', 'BAita', 'BAitaSig']
+# con_type = ['lps_plv']
 
-dir_y_ID = '/share/FannyMaster/PythonNew/Age_Gender.csv'
+# dir_y_ID = '/share/FannyMaster/PythonNew/Age_Gender.csv'
 
-partialDat = True
+# partialDat = False
 
-for parc in range(len(atlas)):
-    dir_features = '/share/FannyMaster/PythonNew/' + atlas[parc] + '/DiLorenzo/Features/'
+# for parc in range(len(atlas)):
+#     dir_features = '/share/FannyMaster/PythonNew/' + atlas[parc] + '/DiLorenzo/Features/'
+#     print('------------------------------------')
+#     print(atlas2[parc])
+#     print('------------------------------------')
+    
+#     if atlas3[parc] == 'BAitaSig':
+#         labels, n_BAitaSig = getLabels(atlas3[parc])
+#     else:
+#         labels = getLabels(atlas3[parc])
+#         n_BAitaSig = None
+        
+#     for con in range(len(con_type)):
+        
+#         # if atlas[parc]=='DK_timeseries_0505' and con_type[con]=='lps':
+#         #     continue
+            
+#         print(con_type[con])
+        
+#         X, y = get_Xy(dir_features, dir_y_ID, con_type[con], partialData = partialDat)
+
+#         if atlas[parc] == 'DKEgill_timeseries_2705':
+#             X = getEgillX(X)        
+#         elif atlas[parc] == 'BAitaSig_timeseries_2705':
+#             X, _ = significant_connected_areasBAitaSigX(X)
+
+#         hc = X[y==1]
+#         sz = X[y==0]
+        
+#         if test == 'MannWhitneyU':
+#             pval = []
+#             for i in range(len(hc[0])):
+#                 stats, pval_tmp = scipy.stats.mannwhitneyu(hc[:,i],sz[:,i])
+#                 pval.append(pval_tmp)
+#             pval = np.array(pval)
+            
+#         elif test == 'ttest':
+#             #hc = np.log(hc)
+#             #sz = np.log(sz)
+#             stats, pval = ttest_ind(hc,sz,axis=0,equal_var=False)
+            
+#         elif test == 'logF':
+#             F = np.var(hc[:,i])/np.var(sz[:,i])
+#             p = scipy.stats.f.sf(stats**2,len(hc[:,i])-1,len(sz[:,i])-1)
+        
+#         print('Number of significant connections:                 ', sum(pval<0.05), ', Minimum p-value:', np.min(pval))
+#         print('Number of significant connections after Bonferroni:', sum(pval<0.05/len(hc[0])), ', Minimum corrected p-value:', np.min(pval*len(hc[0])))
+        
+#         reject, pval_cor, alphacSidak, alphacBonf = multipletests(pval,alpha=0.05, method='fdr_bh')
+#         #print('Number of significant connections after FDR (BH):', sum(pval_cor<0.05), ', Minimum corrected p-value:', np.min(pval_cor))
+        
+#         pval_bonf = pval*len(hc[0])
+#         pval_idx = np.nonzero(pval_bonf<0.05)
+        
+#         #connections = most_connected_areas(pval_idx, min_fraction, labels, wanted_info, clf_types, n_BAitaSig=None)
+#         connections = significant_connected_areas(pval_idx, labels, n_BAitaSig)
+#         pprint(connections)
+        
+#         mu_con_sig = {'avg. HC': np.mean(hc[:,pval_idx],axis=0), 'avg. SZ': np.mean(sz[:,pval_idx],axis=0)}
+#         pprint(mu_con_sig)
+        
+#         # pval_bh = pval_cor
+#         # pval_idx = np.nonzero(pval_bh<0.05)
+        
+#         # #connections = most_connected_areas(pval_idx, min_fraction, labels, wanted_info, clf_types, n_BAitaSig=None)
+#         # connections = significant_connected_areas(pval_idx, labels, n_BAitaSig)
+#         # pprint(connections)
+
+#%%
+
+def testings(con_types, atlas, partialDat, dir1, dir_ID, test_type = 'SCZvsHC', dir2 = '', dir_ID2 = ''):
     print('------------------------------------')
-    print(atlas2[parc])
+    if parc == 'DK':
+        print('Atlas = Desikan-Killiany')
+    elif parc == 'DKEgill':
+        print('Atlas = Egill picked Desikan-Killiany')
+    elif parc == 'BA':
+        print('Atlas = Broadmann Areas')
+    elif parc == 'BAita':
+        print('Atlas = Italians Broadmann Areas')
+    elif parc == 'BAitaSig':
+        print('Atlas = Italians Significant Broadmann Areas')
+    else:
+        print('Atlas = Unknown atlas')
     print('------------------------------------')
     
-    if atlas3[parc] == 'BAitaSig':
-        labels, n_BAitaSig = getLabels(atlas3[parc])
+    # Get labels 
+    if parc == 'BAitaSig':
+        labels, n_BAitaSig = getLabels(parc)
     else:
-        labels = getLabels(atlas3[parc])
+        labels = getLabels(parc)
         n_BAitaSig = None
         
-    for con in range(len(con_type)):
+    for con in range(len(con_types)):
+        print('Connectivity measure = ' + con_types[con])
         
-        if atlas[parc]=='DK_timeseries_0505' and con_type[con]=='lps':
-            continue
+        # Get data
+        X, y = get_Xy(dir1, dir_ID, con_types[con], partialData = partialDat)
+        # if parc == 'DKEgill':
+        #     X = getEgillX(X)        
+        # elif parc == 'BAitaSig':
+        #     X, _ = significant_connected_areasBAitaSigX(X)
+        
+
+        if test_type == 'SCZvsHC':
+            group1 = X[y==1]
+            group2 = X[y==0]
+        else: 
+            X1, y1 = get_Xy(dir2, dir_ID2, con_types[con], partialData = partialDat)
             
-        print(con_type[con])
-        
-        X, y = getData(dir_features, dir_y_ID, con_type[con], partialData = partialDat)
-
-        if atlas[parc] == 'DKEgill_timeseries_2705':
-            X = getEgillX(X)        
-        elif atlas[parc] == 'BAitaSig_timeseries_2705':
-            X, _ = getBAitaSigX(X)
-
-        hc = X[y==1]
-        sz = X[y==0]
-        
+            if test_type == 'SCZvsSCZ':
+                group1 = X[y==1] # test group 1
+                group2 = X1[y1==1] # test group 2
+            elif test_type == 'HCvsHC':
+                group1 = X[y==0]
+                group2 = X1[y1==0]
+                
+            elif test_type == 'P1vsP2':
+                Xnew = np.concatenate((X, X1))
+                ynew = y.append(y1)
+                
+                group1 = Xnew[ynew==1]
+                group2 = Xnew[ynew==0]
+            else:
+                raise NameError(test_type + 'is not a valid test_type')
+                
+            
+        # Tests    
         if test == 'MannWhitneyU':
             pval = []
-            for i in range(len(hc[0])):
-                stats, pval_tmp = scipy.stats.mannwhitneyu(hc[:,i],sz[:,i])
+            for i in range(len(X[0])):
+                stats, pval_tmp = scipy.stats.mannwhitneyu(group1[:,i],group2[:,i])
                 pval.append(pval_tmp)
             pval = np.array(pval)
             
         elif test == 'ttest':
             #hc = np.log(hc)
             #sz = np.log(sz)
-            stats, pval = ttest_ind(hc,sz,axis=0,equal_var=False)
+            stats, pval = ttest_ind(group1,group2,axis=0,equal_var=False)
             
         elif test == 'logF':
-            F = np.var(hc[:,i])/np.var(sz[:,i])
-            p = scipy.stats.f.sf(stats**2,len(hc[:,i])-1,len(sz[:,i])-1)
+            F = np.var(group1[:,i])/np.var(group2[:,i])
+            p = scipy.stats.f.sf(stats**2,len(X[:,i])-1,len(X1[:,i])-1)
+        else:
+            raise NameError(test + 'is not a valid test')
+        
+        # Bonferroni correct p-value        
+        pval_bonf = pval*len(group1[0])
+        pval_bonf_idx = np.nonzero(pval_bonf<0.05)
+        pval_idx = np.nonzero(pval<0.05)
         
         print('Number of significant connections:                 ', sum(pval<0.05), ', Minimum p-value:', np.min(pval))
-        print('Number of significant connections after Bonferroni:', sum(pval<0.05/len(hc[0])), ', Minimum corrected p-value:', np.min(pval*len(hc[0])))
-        
+        print('Number of significant connections after Bonferroni:', sum(pval_bonf<0.05), ', Minimum corrected p-value:', np.min(pval*len(X[0])))
+    
+        # FDR - assumes the areas are not completely uncorrelated
         reject, pval_cor, alphacSidak, alphacBonf = multipletests(pval,alpha=0.05, method='fdr_bh')
-        #print('Number of significant connections after FDR (BH):', sum(pval_cor<0.05), ', Minimum corrected p-value:', np.min(pval_cor))
+        print('Number of significant connections after FDR (BH):', sum(pval_cor<0.05), ', Minimum corrected p-value:', np.min(pval_cor))
         
-        pval_bonf = pval*len(hc[0])
-        pval_idx = np.nonzero(pval_bonf<0.05)
+        
+        # Check out Cluster Permutation Test
+        
         
         #connections = most_connected_areas(pval_idx, min_fraction, labels, wanted_info, clf_types, n_BAitaSig=None)
-        connections = significant_connected_areas(pval_idx, labels, n_BAitaSig)
-        pprint(connections)
+        connections = significant_connected_areas(pval_bonf_idx, labels, n_BAitaSig)
+        # pprint(connections)
         
-        mu_con_sig = {'avg. HC': np.mean(hc[:,pval_idx],axis=0), 'avg. SZ': np.mean(sz[:,pval_idx],axis=0)}
-        pprint(mu_con_sig)
+        # mu_con_sig = {'avg. HC': np.mean(group1[:,pval_idx],axis=0), 'avg. SZ': np.mean(group2[:,pval_idx],axis=0)}
+        # pprint(mu_con_sig)
         
+        return pval
         # pval_bh = pval_cor
         # pval_idx = np.nonzero(pval_bh<0.05)
         
         # #connections = most_connected_areas(pval_idx, min_fraction, labels, wanted_info, clf_types, n_BAitaSig=None)
         # connections = significant_connected_areas(pval_idx, labels, n_BAitaSig)
         # pprint(connections)
+        
+        
+#%%
+test = 'ttest' #'MannWhitneyU'
+
+atlas = ['DK'] # ['BAita', 'BAitaSig', 'DKEgill']
+con_types = ['lps']
+
+
+dir1 = r'/share/rsEEG/Timeseries/PECANS1/DK_timeseries_0505/DiLorenzo/FeaturesNew'
+dir_ID = '/share/FannyMaster/PythonNew/Age_Gender.csv'
+
+dir2 = r'/share/rsEEG/Timeseries/PECANS2/DK_timeseries_0608/DiLorenzo/FeaturesNew'
+dir_ID2 = r'/share/rsEEG/Scripts/Id_Group_red.csv'
+
+partialDat = False
+test_type = 'SCZvsSCZ' # 'SCZvsHS', 'SCZvsSCZ', 'HCvsHC', 'P1vsP2'
+
+for parc in atlas:
+    # Print statement for orientation
+    pval = testings(con_types, parc, partialDat, dir1, dir_ID, test_type, dir2, dir_ID2)        
+        
+    # Illustration
+    
+    freq_bands = ['delta', 'theta', 'alpha', 'beta1', 'beta2', 'gamma']   
+    
+    fig, ax = plt.subplots(2,3, figsize = (7,5.5))  
+    for i in range(6):
+        pval_band = pval[2278*i : 2278*(i+1)]
+        sig_pval_idx = np.nonzero(pval_band < 0.05)
+        mat = np.zeros((68,68))
+        x,y = np.triu_indices(68, k=1)        
+        
+        for j in sig_pval_idx[0]:
+            mat[x[j]][y[j]] = pval_band[j]
+            
+        plt.imshow(mat, cmap='viridis') #, vmin= 0, vmax= max_val)#, clim= np.percentile(con_mat[5, 95]))
+        plt.title(freq_bands[i])
+        
+        # plt.show()
+          
+        con_fig = ax[i//3][i%3].imshow(mat, cmap='viridis')#, vmin= -1, vmax= 1)#, clim= np.percentile(con_mat[5, 95]))
+        #ax[0][0].tight_layout()
+        #plt.colorbar(con_fig)
+        ax[i//3][i%3].set_title(freq_bands[i] + ': sig-pvals = ' + str(len(sig_pval_idx[0])), fontsize = 12)
+        
+        
+    plt.tight_layout(pad = 0.6)
+    fig.subplots_adjust(top=0.9)
+    # fig.colorbar(con_fig, ax = ax.ravel().tolist(), shrink = 0.98, ticks = [-1, 0, 1])
+    fig.suptitle('t-test for ' + test_type + '    Tot sig-pvals = ' + str(len(np.nonzero(pval<0.05)[0])), fontsize = 14)
+    plt.show()
+        
+        
+        
+        
+        
+   

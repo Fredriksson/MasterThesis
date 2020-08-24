@@ -13,14 +13,12 @@ from tqdm import tqdm #count ffor loops
 import math
 from sklearn.model_selection import GridSearchCV, StratifiedKFold
 from sklearn import preprocessing
-from datetime import datetime
 from sklearn.utils import shuffle
 from sklearn.linear_model import Lasso
-from makeClassificationTest2 import getEgillX, getEgillParameters
-from makeClassificationTest2 import getBAitaSigX, getBAitaSigParameters, getBAitaParameters
+from utils_runOnce_classification import getEgillX, getEgillParameters
+from utils_runOnce_classification import significant_connected_areasBAitaSigX, getBAitaSigParameters, getBAitaParameters
 import seaborn as sns
-from makeClassificationTest2 import getData
-from utilsResults import getNewestFolderDate
+from utils_joint import getNewestFolderDate, get_Xy
 
 import pdb
 #{}
@@ -111,7 +109,7 @@ def leaveKout_CV(X, y, n_scz_te, rep, perms, classifiers, parameters, count,
                 plt.show()
                 fig.savefig('/share/FannyMaster/PythonNew/Figures/LineSearchEx.jpg', bbox_inches = 'tight')
                 sns.reset_orig()
-                raise 
+                raise NameError('This is just a dumb way of stopping the code after 6 iterations')
                 
             i = 1
             clf = GridSearchCV(classifiers[clf_name], {'alpha' :parameters[freq_bands[i]]}, 
@@ -273,14 +271,14 @@ n_scz_te = 2
 reps = range(1)
 classifiers = {'lasso' : Lasso(max_iter = 10000)}  
 dir_save = dir_folders + newest_date + '/' + freq_band_type + '/classificationResults/' + con_type.capitalize() 
-X,y = getData(dir_features, dir_y_ID, con_type, partialData)
+X,y = get_Xy(dir_features, dir_y_ID, con_type, partialData)
 
 if atlas == 'DKEgill':
     X = getEgillX(X)
     n_BAitaSig = None
     parameters = getEgillParameters(con_type, separate_bands)
 elif atlas == 'BAitaSig':
-    X, n_BAitaSig = getBAitaSigX(X)
+    X, n_BAitaSig = significant_connected_areasBAitaSigX(X)
     parameters = getBAitaSigParameters(con_type, separate_bands)
 elif atlas == 'BAita':
     parameters = getBAitaParameters(con_type, separate_bands)

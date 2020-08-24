@@ -10,7 +10,7 @@
 %       ICA to remove artifacts (eye movements, muscle movements, etc.)
 %       Reconstruct ICA with components where brain has the highest prob
 %       
-
+% Author: Fanny Fredriksson and Karen Marie Sandø Ambrosen
 %%
 clc; clear all; close all;
 

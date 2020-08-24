@@ -79,9 +79,11 @@ def extract_ts(dir_prepro_dat, dir_save, lower, upper, atlas):
     # Check what atlas to use and read labels
     if atlas == 'DK':
         # Desikan-Killiany Atlas = aparc
+        parc = 'Yeo2011_7Networks_N1000' # 'aparc'
         labels = read_labels_from_annot(subject, parc = 'aparc', hemi='both',
                                      surf_name= 'white', annot_fname = None, regexp = None,
                                      subjects_dir = subjects_dir, verbose = None)
+        
         labels = labels[:-1]
     # elif atlas == 'BA':
     #     # Broadmann areas
@@ -122,6 +124,53 @@ def extract_ts(dir_prepro_dat, dir_save, lower, upper, atlas):
                 else:
                     sum_lh += lab_dict[ba_lh]
                     sum_rh += lab_dict[ba_rh]
+            new_label.append(sum_lh)
+            new_label.append(sum_rh)
+            
+        labels = new_label 
+        
+    elif atlas == 'DKLobes':
+        # Brodmann areas collected as in Di Lorenzo et al.
+        labels = read_labels_from_annot(subject, parc = 'aparc', hemi='both',
+                                     surf_name= 'white', annot_fname = None, regexp = None,
+                                     subjects_dir = subjects_dir, verbose = None)
+        # Divide into lobes based on 
+        # https://surfer.nmr.mgh.harvard.edu/fswiki/CorticalParcellation
+        frontal = ['superiorfrontal', 'rostralmiddlefrontal', 'caudalmiddlefrontal', 
+                   'parsopercularis', 'parstriangularis', 'parsorbitalis', 
+                   'lateralorbitofrontal', 'medialorbitofrontal', 'precentral', 
+                   'paracentral', 'frontalpole', 'rostralanteriorcingulate',
+                   'caudalanteriorcingulate']
+        parietal = ['superiorparietal', 'inferiorparietal', 'supramarginal', 
+                    'postcentral', 'precuneus', 'posteriorcingulate', 
+                    'isthmuscingulate']
+        temporal = ['superiortemporal', 'middletemporal', 'inferiortemporal',
+                    'bankssts', 'fusiform', 'transversetemporal', 'entorhinal', 
+                    'temporalpole', 'parahippocampal']        
+        occipital = ['lateraloccipital', 'lingual', 'cuneus', 'pericalcarine']
+        
+        all_lobes = {'frontal': frontal, 'parietal': parietal, 'occipital': occipital, 'temporal': temporal}
+        
+        labels = labels[:-1]
+        lab_dict = {}
+        for lab in labels:
+            lab_dict[lab.name] = lab
+        
+        # Sort labels according to connectivity featurers
+        new_label = []
+        for lobes in list(all_lobes.keys()):
+            for idx, name in enumerate(all_lobes[lobes]):
+                name_lh = name +'-lh'
+                name_rh = name +'-rh'  
+                
+                if idx == 0:
+                    sum_lh = lab_dict[name_lh]
+                    sum_rh = lab_dict[name_rh]
+                else:
+                    sum_lh += lab_dict[name_lh]
+                    sum_rh += lab_dict[name_rh]
+            sum_lh.name = lobes + '-lh'
+            sum_rh.name = lobes + '-rh'
             new_label.append(sum_lh)
             new_label.append(sum_rh)
             

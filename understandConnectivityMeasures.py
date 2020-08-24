@@ -16,25 +16,57 @@ import pdb #For debugging add pdb.set_trace() in function use c for continue, u 
 # []
 
 ##############################################################################
-def lps_plv(data, fb, fs):
-    _, u_phase = analytic_signal(data, fb, fs) 
-    n_channels, _ = np.shape(np.array(data))
+def lps(data, fb, fs):
+    '''
+    Function that calculates lagged phase synchronisation. It only calcultes 
+    the values for the upper triangle. If the denomenator is zero it sets the 
+    lps value tozero. Note that this might be a problem for other programs!
+    
+
+    Parameters
+    ----------
+    data : array of arrays
+        Data matrix that you would like to calculate the pairwisae lps for.
+    fb : 
+        DESCRIPTION.
+    fs : list
+        List with the desired lower and upper limit of the frequency range.
+
+    Returns
+    -------
+    lps : list of lists
+        Matrix with the LPS values of the upper triangle.
+
+    '''    
+    # Define the list of pairwise comparisons & allocate space for the matrix
+    n_channels, _ = np.shape(data)
     pairs = [(r2, r1) for r1 in range(n_channels) for r2 in range(r1)]
-    avg = np.zeros((n_channels, n_channels)) 
+    lps = np.zeros((n_channels, n_channels)) 
+    
+    # Get the Fourier transformed and normalized data
+    _, u_phase, _ = analytic_signal(data, fb, fs) 
+    
+    # Loop over the different pair combinations
     for pair in pairs:
+        # Get the pairs correspnding normalized Fourier transformation
         u1, u2 = u_phase[pair,]
+        # Make it independent of phase
         ts_plv = np.exp(1j * (u1-u2))
-        #pdb.set_trace()
-        #avg_plv = np.abs(np.sum(ts_plv)) / float(label_ts.shape[1])
+        
+        # Calculate the complex values phase locking value
         r = np.sum(ts_plv) / float(np.array(data).shape[1])
+        
+        # Get numerator and denomenator for LPS
         num = np.power(np.imag(r), 2)
         denom = 1-np.power(np.real(r), 2)
-        #pdb.set_trace()
+        
+        # Make sure to not divide by zero.
         if denom == 0:
-            avg[pair] = 0
+            lps[pair] = 0
         else:
-            avg[pair] = num/denom
-    return avg
+            lps[pair] = num/denom
+
+    return lps
 
 
 #%%##########################################################################
@@ -56,7 +88,7 @@ dat = [sigA,sigB,sigC] #,sigD]
 
 _, PLI = dyconnmap.fc.pli(dat, fb=None, fs=None, pairs=None)
 _, PLV = dyconnmap.fc.plv(dat, fb=None, fs=None, pairs=None)
-LPS = lps_plv(dat, fb=None, fs=None)
+LPS = lps(dat, fb=None, fs=None)
 
 print(PLI)
 print('\n')
@@ -68,11 +100,11 @@ print(LPS)
 
 #%%
 fig = plt.figure(figsize=(11,6))
-sns.set(font_scale=1.2)
+sns.set(font_scale=1.8)
 
-sns.lineplot(t,sigA)
-sns.lineplot(t,sigB)
-sns.lineplot(t,sigC)
+sns.lineplot(t,sigA, **{'linewidth': 3})
+sns.lineplot(t,sigB, **{'linewidth': 3})
+sns.lineplot(t,sigC, **{'linewidth': 3})
 
 x_tick = np.linspace(0,4*np.pi, 5)
 x_ticklabels = [r"0", r"$\pi$", r"2$\pi$", r"$3\pi$", r"$4\pi$"]
@@ -80,7 +112,7 @@ x_ticklabels = [r"0", r"$\pi$", r"2$\pi$", r"$3\pi$", r"$4\pi$"]
 
 plt.xlabel('Radians')
 plt.ylabel('Amplitude')
-plt.legend(['Signal A', 'Signal B', 'Signal C'], loc = 'upper right') #, 'signal D'])
+plt.legend(['Signal A, '+r"$\phi_a=0$", 'Signal B, '+ r"$\phi_b=0$", 'Signal C'], loc = 'lower left') #, 'signal D'])
 plt.xticks(x_tick, x_ticklabels)
 #plt.xticklabels(x_ticklabels)
 
@@ -119,7 +151,7 @@ for i, phi in enumerate(phiInterval):
 
     _, PLI = dyconnmap.fc.pli(dat, fb=None, fs=None, pairs=None)
     _, PLV = dyconnmap.fc.plv(dat, fb=None, fs=None, pairs=None)
-    LPS = lps_plv(dat, fb=None, fs=None)
+    LPS = lps(dat, fb=None, fs=None)
     cor = dyconnmap.fc.corr(dat)
     
     pliAB.append(PLI[0,1])
@@ -149,7 +181,7 @@ for i, phi in enumerate(phiInterval):
 
     _, PLI = dyconnmap.fc.pli(dat, fb=None, fs=None, pairs=None)
     _, PLV = dyconnmap.fc.plv(dat, fb=None, fs=None, pairs=None)
-    LPS = lps_plv(dat, fb=None, fs=None)
+    LPS = lps(dat, fb=None, fs=None)
     cor = dyconnmap.fc.corr(dat)
     
     pliCB.append(PLI[0,2])

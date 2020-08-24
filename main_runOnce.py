@@ -7,7 +7,7 @@ Created on Sun May  3 13:01:27 2020
 """
 
 from os import chdir
-chdir(r'/share/FannyMaster/PythonNew')
+chdir(r'/share/rsEEG/Scripts_Fanny/')
 
 # []
 # {}
@@ -16,56 +16,70 @@ chdir(r'/share/FannyMaster/PythonNew')
 ## Extract Desikan-Killiany timeseries from preprocessed data
 ##############################################################################
 
-from extract_timeseries import extract_ts
+from utils_runOnce_sourceLocalization import extract_ts
 from datetime import datetime
 import os.path as op
-import mkdir
+from os import mkdir
 
-atlas = 'DKEgill'
+atlas = 'DKLobes'
+pecans = ['1', '2']
 
-dir_prepro_dat = r'/share/FannyMaster/PythonNew/Preprocessed'
+for p in pecans:
+    dir_prepro_dat = r'/share/rsEEG/Preprocessed/PECANS' + p + '/'
+    
+    # Frequency bands
+    lower = [1.5, 4.,  8., 12., 20., 30.]
+    upper = [4. , 8., 12., 20., 30., 80.]
+    
+    date = datetime.now().strftime("%d%m")
+    dir_save = r'/share/rsEEG/Timeseries/PECANS' + p + '/' + atlas + '_timeseries_' + date
+    if not op.exists(dir_save):
+        mkdir(dir_save)
+        print('\nCreated new path : ' + dir_save)
+    dir_save += '/Subjects_ts'
+    
+    
+    # Make the extraction and save the time series
+    extract_ts(dir_prepro_dat, dir_save, lower, upper, atlas)
 
-# Frequency bands
-lower = [1.5, 4.,  8., 12., 20., 30.]
-upper = [4. , 8., 12., 20., 30., 80.]
-
-date = datetime.now().strftime("%d%m")
-dir_save = r'/share/FannyMaster/PythonNew/' + atlas + '_timeseries_' + date
-if not op.exists(dir_save):
-    mkdir(dir_save)
-    print('\nCreated new path : ' + dir_save)
-dir_save += '/Subjects_ts'
-
-
-# Make the extraction and save the time series
-extract_ts(dir_prepro_dat, dir_save, lower, upper, atlas)
-
+# Takes about 3.5 hours
 
 #%%###########################################################################
 ## Make connectivity vectors from time series 
 ##############################################################################
 
-from get_connectivity import getConnectivity  
-from utilsResults import getNewestFolderDate
+from utils_runOnce_connectivity import getConnectivity2 
+from utils_joint import getNewestFolderDate
 # Parameters to change:
 freq_band_type = 'DiLorenzo'
-con_types = ['pli', 'plv', 'lps']
+con_types = ['lps']
+# con_types = ['pli']
+atlas = 'DK'
 ###################################
 
+pecans = ['1', '2']
+
+for p in pecans:
 # Directories
-dir_folders = r'/share/FannyMaster/PythonNew/BA_timeseries_'
-newest_date = getNewestFolderDate(dir_folders)
-dir_ts = dir_folders + newest_date + '/Subjects_ts/'
-dir_y_ID = r'/share/FannyMaster/PythonNew/Age_Gender.csv'
-dir_save = dir_folders + newest_date + '/' + freq_band_type + '/Features'
-
-# Di Lorenzo frequency bands
-lower = [1.5, 4.,  8., 12., 20., 30.] # If you change this, change freq_band_type
-upper = [4. , 8., 12., 20., 30., 80.] # If you change this, change freq_band_type
-
-
-for con_type in con_types:
-    getConnectivity(dir_ts, dir_y_ID, dir_save, con_type, lower, upper)
+    dir_folders = r'/share/rsEEG/Timeseries/PECANS' + p + '/' + atlas + '_timeseries_'
+    newest_date = getNewestFolderDate(dir_folders)
+    dir_ts = dir_folders + newest_date + '/Subjects_ts/'
+    if p == 1:
+        dir_y_ID = r'/share/rsEEG/Scripts_Fanny/Data/Age_Gender.csv'
+    else:
+        dir_y_ID = r'/share/rsEEG/Scripts_Fanny/Data/Id_Group_red.csv'
+        
+    dir_save = dir_folders + newest_date + '/' + freq_band_type + '/FeaturesNew'
+    
+    # Di Lorenzo frequency bands
+    lower = [1.5, 4.,  8., 12., 20., 30.] # If you change this, change freq_band_type
+    upper = [4. , 8., 12., 20., 30., 80.] # If you change this, change freq_band_type
+    
+    # lower = [1.5]
+    # upper = [4.]
+    
+    for con_type in con_types:
+        getConnectivity2(dir_ts, dir_y_ID, dir_save, con_type, lower, upper)
 
 # Brodmann:
 # PLV: Takes around 50 minutes
@@ -83,48 +97,19 @@ for con_type in con_types:
 
 
 #%%###########################################################################
-## NEW and not used yet - Make connectivity vectors from time series  
-##############################################################################
-
-from get_connectivity import getConnectivity2 
-from utilsResults import getNewestFolderDate
-# Parameters to change:
-freq_band_type = 'DiLorenzo'
-con_types = ['pli', 'plv', 'lps']
-atlas = ['DKEgill', 'BAita']
-
-###################################
-
-for atl in atlas:
-    # Directories
-    dir_folders = r'/share/FannyMaster/PythonNew/' + atl + '_timeseries_2705'
-    dir_ts = dir_folders + '/Subjects_ts/'
-    dir_y_ID = r'/share/FannyMaster/PythonNew/Age_Gender.csv'
-    dir_save = dir_folders + '/' + freq_band_type + '/Features2'
-    
-    # Di Lorenzo frequency bands
-    lower = [1.5, 4.,  8., 12., 20., 30.] # If you change this, change freq_band_type
-    upper = [4. , 8., 12., 20., 30., 80.] # If you change this, change freq_band_type
-    
-    
-    for con_type in con_types:
-        getConnectivity2(dir_ts, dir_y_ID, dir_save, con_type, lower, upper)
-
-
-#%%###########################################################################
 # Make Classifications
 ##############################################################################
-from makeClassification import CV_classifier, getData, getEgillParameters, getEgillX
+from utils_runOnce_classification import CV_classifier, getEgillParameters, getEgillX
+from utils_runOnce_classification import getBAitaSigX, getBAitaSigParameters, getBAitaParameters
+from utils_joint import get_Xy, getNewestFolderDate
 from sklearn.linear_model import Lasso
-from utilsResults import getNewestFolderDate
-from makeClassification import getBAitaSigX, getBAitaSigParameters, getBAitaParameters
 
 partialData = False # True or False
 
 con_types = ['pli', 'lps', 'plv']
 freq_band_type = 'DiLorenzo'
 
-dir_y_ID = r'/share/FannyMaster/PythonNew/Age_Gender.csv'
+dir_y_ID = r'/share/rsEEG/Scripts_Fanny/Data/Age_Gender.csv'
 n_scz_te = 2
 reps = range(20)
 classifiers = {'lasso' : Lasso(max_iter = 10000)}
@@ -138,7 +123,7 @@ dir_features = dir_folders + newest_date + '/' + freq_band_type + '/Features'
 
 for con_type in con_types:    
     dir_save = dir_folders + newest_date + '/' + freq_band_type + '/classificationResults/' + con_type.capitalize() 
-    X,y = getData(dir_features, dir_y_ID, con_type, partialData)
+    X,y = get_Xy(dir_features, dir_y_ID, con_type, partialData)
     X, n_BAitaSig = getBAitaSigX(X)
     
     # # All bands together
@@ -163,7 +148,7 @@ dir_features = dir_folders + newest_date + '/' + freq_band_type + '/Features'
 
 for con_type in con_types:    
     dir_save = dir_folders + newest_date + '/' + freq_band_type + '/classificationResults/' + con_type.capitalize() 
-    X,y = getData(dir_features, dir_y_ID, con_type, partialData)
+    X,y = get_Xy(dir_features, dir_y_ID, con_type, partialData)
     
     # All bands together
     # separate_bands = False # False = All bands together
@@ -188,7 +173,7 @@ dir_features = dir_folders + newest_date + '/' + freq_band_type + '/Features'
 
 for con_type in con_types:    
     dir_save = dir_folders + newest_date + '/' + freq_band_type + '/classificationResults/' + con_type.capitalize() 
-    X,y = getData(dir_features, dir_y_ID, con_type, partialData)
+    X,y = get_Xy(dir_features, dir_y_ID, con_type, partialData)
     X = getEgillX(X)
     
     # All bands together

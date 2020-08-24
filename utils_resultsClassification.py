@@ -17,13 +17,12 @@ import pickle
 from glob import glob
 import matplotlib.pyplot as plt
 import seaborn as sns
-from datetime import datetime
 from collections import OrderedDict
 import nibabel as nb
 from nilearn import datasets, plotting
 from nilearn import surface
 import matplotlib as mpl
-from makeClassification import BAitaSig
+from runOnce_makeClassification import BAitaSig
 
 import pdb; #For debugging add pdb.set_trace() in function use c for continue, u for up, exit for exiting debug mode etc.
 
@@ -31,36 +30,6 @@ import pdb; #For debugging add pdb.set_trace() in function use c for continue, u
 # []
 
 #%% Functions 
-##############################################################################
-def getNewestFolderDate(dir_folders):
-    """
-    Gets the folder that is ending with the newest date. The folders date 
-    should be of the form %d%m, thus first day and then month with nothing in 
-    between.
-    
-    Parameters
-    ----------
-    dir_folders : string
-        Directory path to the folders you want to find the newest date for. 
-        The string should not contain the dates.
-
-    Returns
-    -------
-    newest_date : string
-        The newest folder date, in the form %d%m.
-
-    """
-    folders = glob(dir_folders + '*')
-    
-    newest_date = datetime.strptime('19000101', "%Y%d%m").date()
-    for path in folders:
-        folder_date = datetime.strptime('2020' + path[-4:], "%Y%d%m").date()
-        if folder_date > newest_date:
-            newest_date = folder_date
-    newest_date = newest_date.strftime("%d%m")
-
-    return newest_date
-
 ##############################################################################
 def band_idx(idx, n_feature_bands, n_BAitaSig=None):
     """
@@ -128,6 +97,7 @@ def getLabels(atlas): #getDKLabels
         # rois = [0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1]
         # New rois with parahippocampal
         rois = [0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1]
+        
         rois = np.array([rois, rois]).reshape(-1,order='F')
         
         labels = np.array(labels)[np.nonzero(rois)] 
@@ -751,12 +721,19 @@ def getCoordinates(atlas):
     coordinates = []
     
     if atlas == 'DKEgill':
+        # DK already in MNI space: search for "Cortical atlas parcellations in MNI space. Website:lead-dbs.
         # Same labels as for connectivity features 
         label_coord = getDKlabelCoordinates()
         # Sort labels according to connectivity featurers
         labels = getLabels(atlas)
         for i in labels:
             coordinates.append(label_coord[i])
+            
+    elif atlas == 'DK':
+        label_coord = getDKlabelCoordinates()
+        coordinates = list(label_coord.values())
+        
+        
     else:
         label_coord = getBAlabelCoordinates()
         
